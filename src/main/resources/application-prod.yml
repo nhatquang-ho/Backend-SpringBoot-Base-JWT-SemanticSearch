@@ -1,0 +1,36 @@
+# Production configuration
+server:
+  port: ${SERVER_PORT:8080}
+  ssl:
+    enabled: ${SSL_ENABLED:true}
+    key-store: ${SSL_KEYSTORE_PATH:classpath:ssl/keystore.p12}
+    key-store-password: ${SSL_KEYSTORE_PASSWORD:changeit}
+    key-store-type: PKCS12
+    key-alias: ${SSL_KEY_ALIAS:backend}
+
+spring:
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/backend_db}
+    username: ${DATABASE_USERNAME:backend_user}
+    password: ${DATABASE_PASSWORD:backend_password}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:20}
+
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+
+jwt:
+  secret: ${JWT_SECRET:}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:https://yourdomain.com}
+
+logging:
+  level:
+    com.example.backend: INFO
+    root: WARN
+  file:
+    name: /var/log/backend/application.log
