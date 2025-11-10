@@ -209,9 +209,14 @@ public class ProductService {
         // Get all products with embeddings
         List<Product> productsWithEmbeddings = productRepository.findByEmbeddingIsNotNull();
 
+//        for (Product p : productsWithEmbeddings) {
+//            double sim = cosineSimilarity(queryEmbedding, p.getEmbedding());
+//            System.out.printf("%s -> %.4f%n", p.getName(), sim);
+//        }
+
         // Compute cosine similarity (simple, in-memory version for demo)
         // For large datasets, use pgvector extension or a vector DB for fast search!
-        double SIMILARITY_THRESHOLD = 0.4;
+        double SIMILARITY_THRESHOLD = 0.25;
         return productsWithEmbeddings.stream()
                 .map(p -> new AbstractMap.SimpleEntry<>(p, cosineSimilarity(queryEmbedding, p.getEmbedding())))
                 .filter(entry -> entry.getValue() >= SIMILARITY_THRESHOLD) // Only keep high matches

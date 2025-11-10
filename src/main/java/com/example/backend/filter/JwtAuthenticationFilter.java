@@ -46,6 +46,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
+            if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             // Extract JWT token
             final String jwt = authHeader.substring(BEARER_PREFIX.length());
             final String username = jwtService.extractUsername(jwt);
