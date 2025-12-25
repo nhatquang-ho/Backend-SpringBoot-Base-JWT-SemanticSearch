@@ -128,6 +128,15 @@ public class ProductController {
         return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
     }
 
+    @PostMapping("/bulk")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<List<ProductDto>> createProducts(@Valid @RequestBody List<ProductDto> productDtos) throws ExecutionException, InterruptedException {
+        logger.debug("Creating {} new products in bulk", productDtos.size());
+
+        List<ProductDto> createdProducts = productService.createProducts(productDtos);
+        return new ResponseEntity<>(createdProducts, HttpStatus.CREATED);
+    }
+
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or @productService.getProductById(#id).createdByUsername == authentication.name")
     public ResponseEntity<ProductDto> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductDto productDto) {

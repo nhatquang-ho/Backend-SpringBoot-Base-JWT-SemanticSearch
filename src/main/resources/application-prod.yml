@@ -34,3 +34,7 @@ logging:
     root: WARN
   file:
     name: /var/log/backend/application.log
+
+app:
+  search:
+    similarity-threshold: 0.25

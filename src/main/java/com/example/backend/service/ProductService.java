@@ -9,6 +9,7 @@ import com.example.backend.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -30,6 +32,9 @@ public class ProductService {
     private RapidApiEmbeddingService embeddingService;
 
     private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
+
+    @Value("${app.search.similarity-threshold:0.25}")
+    private double similarityThreshold;
 
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
@@ -160,6 +165,46 @@ public class ProductService {
         return convertToProductDto(savedProduct);
     }
 
+    @Transactional
+    public List<ProductDto> createProducts(List<ProductDto> productDtos) throws ExecutionException, InterruptedException {
+        logger.debug("Starting bulk creation for {} products", productDtos.size());
+
+        // 1. Get the current user once to reuse for all products
+        User currentUser = null;
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated()) {
+            currentUser = userRepository.findByUsername(auth.getName())
+                    .orElseThrow(() -> new ResourceNotFoundException("Current user not found"));
+        }
+
+        List<Product> productsToSave = new ArrayList<>();
+
+        for (ProductDto dto : productDtos) {
+            Product product = new Product();
+            product.setName(dto.getName());
+            product.setDescription(dto.getDescription());
+            product.setPrice(dto.getPrice());
+            product.setCategory(dto.getCategory());
+            product.setStockQuantity(dto.getStockQuantity());
+            product.setIsActive(true);
+            product.setCreatedBy(currentUser);
+
+            // 2. Generate embedding
+            String textToEmbed = dto.getName() + " " + dto.getDescription();
+            List<Double> embedding = embeddingService.generateEmbedding(textToEmbed).get();
+            product.setEmbedding(embedding);
+
+            productsToSave.add(product);
+        }
+
+        // 3. Save all at once
+        List<Product> savedProducts = productRepository.saveAll(productsToSave);
+
+        return savedProducts.stream()
+                .map(this::convertToProductDto)
+                .collect(Collectors.toList());
+    }
+
     public ProductDto updateProduct(Long id, ProductDto productDto) {
         logger.debug("Updating product with id: {}", id);
 
@@ -216,10 +261,10 @@ public class ProductService {
 
         // Compute cosine similarity (simple, in-memory version for demo)
         // For large datasets, use pgvector extension or a vector DB for fast search!
-        double SIMILARITY_THRESHOLD = 0.25;
+        //double SIMILARITY_THRESHOLD = 0.25;
         return productsWithEmbeddings.stream()
                 .map(p -> new AbstractMap.SimpleEntry<>(p, cosineSimilarity(queryEmbedding, p.getEmbedding())))
-                .filter(entry -> entry.getValue() >= SIMILARITY_THRESHOLD) // Only keep high matches
+                .filter(entry -> entry.getValue() >= similarityThreshold) // Only keep high matches
                 .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
                 .limit(10)
                 .map(e -> convertToProductDto(e.getKey()))

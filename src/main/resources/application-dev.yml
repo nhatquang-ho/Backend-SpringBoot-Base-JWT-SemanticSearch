@@ -19,3 +19,7 @@ logging:
     com.example.backend: DEBUG
     org.springframework.security: DEBUG
     root: INFO
+
+app:
+  search:
+    similarity-threshold: 0.25
