@@ -229,10 +229,12 @@ public class ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
 
-        product.setIsActive(false);
-        productRepository.save(product);
+        //product.setIsActive(false);
+        //productRepository.save(product);
+        //logger.info("Product deactivated successfully: {}", product.getName());
 
-        logger.info("Product deactivated successfully: {}", product.getName());
+        productRepository.delete(product);
+        logger.info("Product deleted successfully: {}", product.getName());
     }
 
     public void restoreProduct(Long id) {
