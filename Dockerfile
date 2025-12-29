@@ -1,5 +1,5 @@
 # Build stage
-FROM openjdk:21-jdk-slim as build
+FROM eclipse-temurin:21-jdk as build
 
 WORKDIR /app
 
@@ -9,16 +9,16 @@ COPY .mvn .mvn
 COPY pom.xml .
 
 # Download dependencies
-RUN mvn dependency:go-offline -B
+RUN ./mvnw dependency:go-offline -B
 
 # Copy source code
 COPY src src
 
 # Build the application
-RUN mvn clean package -DskipTests
-    
+RUN ./mvnw clean package -DskipTests
+
 # Runtime stage
-FROM openjdk:21-jre-slim
+FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
@@ -35,11 +35,12 @@ COPY --from=build /app/target/*.jar app.jar
 RUN chown -R appuser:appuser /app
 USER appuser
 
-# Expose port
+# Expose ports
 EXPOSE 8080 8443
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3   CMD curl -f http://localhost:8080/api/actuator/health || exit 1
+HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:8080/api/actuator/health || exit 1
 
 # JVM optimization for containers
 ENV JAVA_OPTS="-XX:+UseG1GC -XX:MaxRAMPercentage=75.0 -XX:+PrintGCDetails -XX:+PrintGCTimeStamps"
