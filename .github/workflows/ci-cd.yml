@@ -12,7 +12,7 @@ env:
 
 jobs:
   test:
-    name: Run Tests + Coverage
+    name: Run Tests + Coverage + SonarQube
     runs-on: ubuntu-latest
 
     steps:
@@ -31,6 +31,14 @@ jobs:
 
     - name: Generate Jacoco coverage report
       run: mvn jacoco:report
+
+    - name: Run SonarQube analysis
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: mvn sonar:sonar \
+        -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
+        -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+        -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
     - name: Upload coverage report
       uses: actions/upload-artifact@v4

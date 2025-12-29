@@ -260,7 +260,7 @@ Set these secrets in your GitHub repository:
 
 ```bash
 # Build application
-./mvnw clean package -DskipTests
+mvn clean package -DskipTests
 
 # Build Docker image
 docker build -t your-registry/backend:latest .
@@ -278,13 +278,13 @@ docker-compose -f docker-compose.prod.yml up -d
 
 ```bash
 # Run all tests
-./mvnw test
+mvn test
 
 # Run specific test class
-./mvnw test -Dtest=AuthControllerTest
+mvn test -Dtest=AuthControllerTest
 
 # Run with coverage
-./mvnw jacoco:prepare-agent test jacoco:report
+mvn jacoco:prepare-agent test jacoco:report
 ```
 
 ### Integration Tests
@@ -293,7 +293,7 @@ The project includes integration tests using Testcontainers:
 
 ```bash
 # Run integration tests with real database
-./mvnw verify -P integration-tests
+mvn verify -P integration-tests
 ```
 
 ## 📊 Monitoring & Health Checks

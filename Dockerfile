@@ -9,14 +9,14 @@ COPY .mvn .mvn
 COPY pom.xml .
 
 # Download dependencies
-RUN ./mvnw dependency:go-offline -B
+RUN mvn dependency:go-offline -B
 
 # Copy source code
 COPY src src
 
 # Build the application
-RUN ./mvnw clean package -DskipTests
-
+RUN mvn clean package -DskipTests
+    
 # Runtime stage
 FROM openjdk:21-jre-slim
 
